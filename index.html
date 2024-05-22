@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Camera Protractor App</title>
+  <style>
+    #video {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #protractor {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="protractor" width="640" height="480"></canvas>
+  
+  <div id="controls">
+    <label for="shank-length">Shank Length:</label>
+    <input type="number" id="shank-length" step="0.1">
+    <button id="calculate">Calculate Drilling Angle</button>
+    <p id="result"></p>
+  </div>
+
+  <script>
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+      }
+    }
+
+    function drawProtractor(angle) {
+      const canvas = document.getElementById('protractor');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.arc(320, 240, 200, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const radian = (angle * Math.PI) / 180;
+      const x = 320 + 200 * Math.cos(radian);
+      const y = 240 - 200 * Math.sin(radian);
+
+      ctx.beginPath();
+      ctx.moveTo(320, 240);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+
+    function calculateDrillingAngle(angle, shankLength) {
+      // ここに計算式を実装します
+      // 例えば、仮の計算式として
+      return angle + shankLength; // 実際には適切な計算式を使う必要があります
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      startCamera();
+
+      let angle = 0;
+      const canvas = document.getElementById('protractor');
+
+      canvas.addEventListener('wheel', (event) => {
+        angle += event.deltaY > 0 ? -0.1 : 0.1;
+        drawProtractor(angle.toFixed(1));
+      });
+
+      drawProtractor(angle);
+
+      document.getElementById('calculate').addEventListener('click', () => {
+        const shankLength = parseFloat(document.getElementById('shank-length').value);
+        const drillingAngle = calculateDrillingAngle(angle, shankLength);
+        document.getElementById('result').innerText = `Drilling Angle: ${drillingAngle.toFixed(2)} degrees`;
+      });
+    });
+  </script>
+</body>
+</html>
